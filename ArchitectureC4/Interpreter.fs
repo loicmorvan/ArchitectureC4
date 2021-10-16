@@ -22,30 +22,25 @@ type State =
     | WorkspaceScope of Workspace
     | SystemIdentityReceived of Workspace * string
     | SystemAssignationReceived of Workspace * string
-    | SystemReceived of Workspace * System
+    | SystemKeywordReceived of Workspace * System
     | SystemTitleReceived of Workspace * System
     | SystemDescriptionReceived of Workspace * System
     | SystemScope of Workspace * System
-    | ContainerReceived of Workspace * System * Container
+    | ContainerKeywordReceived of Workspace * System * Container
     | ContainerScope of Workspace * System * Container
     | End of Workspace
     | Error of string
-
-let findSystemId (systems: System list) =
+    
+let findId (list: 'a list) (baseName: string) (predicate: string -> 'a -> bool) =
     let mutable index = 1
-    let mutable id = "system1"
-    while systems |> List.exists (fun x -> x.Identity = id) do
+    let mutable id = $"{baseName}{index}"
+    while list |> List.exists (predicate id) do
         index <- index + 1
-        id <- $"system{index}"
+        id <- $"{baseName}{index}"
     id
-
-let findContainerId (containers: Container list) =
-    let mutable index = 1
-    let mutable id = "container1"
-    while containers |> List.exists (fun x -> x.Identity = id) do
-        index <- index + 1
-        id <- $"container{index}"
-    id
+    
+let findSystemId (systems: System list) = findId systems "system" (fun name system -> system.Identity = name)
+let findContainerId (containers: Container list) = findId containers "container" (fun name container -> container.Identity = name)
 
 let next state token =
     match state with
@@ -67,7 +62,7 @@ let next state token =
                 Description = ""
                 Containers = []
             }
-            SystemReceived (workspace, system)
+            SystemKeywordReceived (workspace, system)
         | Word identity -> SystemIdentityReceived (workspace, identity)
         | _ -> Error $"Unexpected token {token}"
     | SystemIdentityReceived (workspace, identity) ->
@@ -83,9 +78,9 @@ let next state token =
                 Description = ""
                 Containers = []
             }
-            SystemReceived (workspace, system)
+            SystemKeywordReceived (workspace, system)
         | _ -> Error $"Unexpected token {token}"
-    | SystemReceived (workspace, system) ->
+    | SystemKeywordReceived (workspace, system) ->
         match token with
         | Text title ->
             let newSystem = { system with Title = title }
@@ -115,9 +110,9 @@ let next state token =
                 Technology = ""
                 Description = ""
             }
-            ContainerReceived (workspace, system, container)
+            ContainerKeywordReceived (workspace, system, container)
         | _ -> Error $"Unexpected token {token}"
-    | ContainerReceived (workspace, system, container) ->
+    | ContainerKeywordReceived (workspace, system, container) ->
         match token with
         | Operator operator when operator = "{" -> ContainerScope (workspace, system, container)
         | _ -> Error $"Unexpected token {token}"
