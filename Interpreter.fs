@@ -1,12 +1,18 @@
 ﻿module Interpreter
 
 open Tokenizer
-open System
 
+type Container = {
+    Identity: string
+    Title: string
+    Technology: string
+    Description: string
+}
 type System = {
     Identity: string
     Title: string
     Description: string
+    Containers: Container list
 }
 type Workspace = { Systems: System list }
 
@@ -49,6 +55,7 @@ let next state token =
                 Identity = findNextSystemIdentity workspace.Systems
                 Title = ""
                 Description = ""
+                Containers = []
             }
             SystemReceived (workspace, system)
         | Word identity -> SystemIdentityReceived (workspace, identity)
@@ -64,6 +71,7 @@ let next state token =
                 Identity = identity
                 Title = ""
                 Description = ""
+                Containers = []
             }
             SystemReceived (workspace, system)
         | _ -> Error $"Unexpected token {token}"
