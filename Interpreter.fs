@@ -26,15 +26,25 @@ type State =
     | SystemTitleReceived of Workspace * System
     | SystemDescriptionReceived of Workspace * System
     | SystemScope of Workspace * System
+    | ContainerReceived of Workspace * System * Container
+    | ContainerScope of Workspace * System * Container
     | End of Workspace
     | Error of string
 
-let findNextSystemIdentity systems =
+let findSystemId (systems: System list) =
     let mutable index = 1
     let mutable id = "system1"
     while systems |> List.exists (fun x -> x.Identity = id) do
         index <- index + 1
         id <- $"system{index}"
+    id
+
+let findContainerId (containers: Container list) =
+    let mutable index = 1
+    let mutable id = "container1"
+    while containers |> List.exists (fun x -> x.Identity = id) do
+        index <- index + 1
+        id <- $"container{index}"
     id
 
 let next state token =
@@ -52,7 +62,7 @@ let next state token =
         | Operator operator when operator = "}" -> End workspace
         | Word keyword when keyword = "system" -> 
             let system = {
-                Identity = findNextSystemIdentity workspace.Systems
+                Identity = findSystemId workspace.Systems
                 Title = ""
                 Description = ""
                 Containers = []
@@ -98,6 +108,24 @@ let next state token =
         | Operator operator when operator = "}" ->
             let newWorkspace = { workspace with Systems = system :: workspace.Systems }
             WorkspaceScope newWorkspace
+        | Word keyword when keyword = "container" ->
+            let container = {
+                Identity = findContainerId system.Containers
+                Title = ""
+                Technology = ""
+                Description = ""
+            }
+            ContainerReceived (workspace, system, container)
+        | _ -> Error $"Unexpected token {token}"
+    | ContainerReceived (workspace, system, container) ->
+        match token with
+        | Operator operator when operator = "{" -> ContainerScope (workspace, system, container)
+        | _ -> Error $"Unexpected token {token}"
+    | ContainerScope (workspace, system, container) ->
+        match token with
+        | Operator operator when operator = "}" ->
+            let newSystem = { system with Containers = container :: system.Containers }
+            SystemScope (workspace, newSystem)
         | _ -> Error $"Unexpected token {token}"
     | End workspace -> End workspace
     | Error error -> Error error
