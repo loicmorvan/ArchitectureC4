@@ -14,6 +14,8 @@ type State =
     | Start
     | WorkspaceReceived of Workspace
     | WorkspaceScope of Workspace
+    | SystemIdentityReceived of Workspace * string
+    | SystemAssignationReceived of Workspace * string
     | SystemReceived of Workspace * System
     | SystemTitleReceived of Workspace * System
     | SystemDescriptionReceived of Workspace * System
@@ -42,9 +44,24 @@ let next state token =
     | WorkspaceScope workspace ->
         match token with
         | Operator operator when operator = "}" -> End workspace
-        | Word word when word = "system" -> 
+        | Word keyword when keyword = "system" -> 
             let system = {
                 Identity = findNextSystemIdentity workspace.Systems
+                Title = ""
+                Description = ""
+            }
+            SystemReceived (workspace, system)
+        | Word identity -> SystemIdentityReceived (workspace, identity)
+        | _ -> Error $"Unexpected token {token}"
+    | SystemIdentityReceived (workspace, identity) ->
+        match token with
+        | Operator equality when equality = "=" -> SystemAssignationReceived (workspace, identity)
+        | _ -> Error $"Unexpected token {token}"
+    | SystemAssignationReceived (workspace, identity) ->
+        match token with
+        | Word keyword when keyword = "system" -> 
+            let system = {
+                Identity = identity
                 Title = ""
                 Description = ""
             }
