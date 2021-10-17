@@ -149,6 +149,61 @@ let data = [
             ]
         } :> obj
     |]
+    [|
+        [
+            Word "workspace"
+            Operator "{"
+            Word "system32"
+            Operator "="
+            Word "system"
+            Text "The system"
+            Text "The description"
+            Operator "{"
+            Word "container16"
+            Operator "="
+            Word "container"
+            Text "The container's title"
+            Text "The container's technology"
+            Text "The container's description"
+            Operator "{"
+            Word "component8"
+            Operator "="
+            Word "component"
+            Text "The component's title"
+            Text "The component's technology"
+            Text "The component's description"
+            Operator "{"
+            Operator "}"
+            Operator "}"
+            Operator "}"
+            Operator "}"
+        ] :> obj
+        Interpreted.Workspace { 
+            Systems = [
+                {
+                    Identity = "system32"
+                    Title = "The system"
+                    Description = "The description"
+                    Containers = [
+                        {
+                            Identity = "container16"
+                            Title = "The container's title"
+                            Technology = "The container's technology"
+                            Description = "The container's description"
+                            Components = [
+                                {
+                                    Identity = "component8"
+                                    Title = "The component's title"
+                                    Technology = "The component's technology"
+                                    Description = "The component's description"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        } :> obj
+    |]
 ]
 
 [<Theory>]

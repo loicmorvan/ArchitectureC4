@@ -20,6 +20,13 @@ type State =
     | ContainerTechnologyReceived of Workspace * System * Container
     | ContainerDescriptionReceived of Workspace * System * Container
     | ContainerScope of Workspace * System * Container
+    | ComponentIdentityReceived of Workspace * System * Container * string
+    | ComponentAssignationReceived of Workspace * System * Container * string
+    | ComponentKeywordReceived of Workspace * System * Container * Component
+    | ComponentTitleReceived of Workspace * System * Container * Component
+    | ComponentTechnologyReceived of Workspace * System * Container * Component
+    | ComponentDescriptionReceived of Workspace * System * Container * Component
+    | ComponentScope of Workspace * System * Container * Component
     | End of Workspace
     | Error of string
     
@@ -146,6 +153,50 @@ let next state token =
         | Operator operator when operator = "}" ->
             let newSystem = { system with Containers = container :: system.Containers }
             SystemScope (workspace, newSystem)
+        | Word keyword when keyword = "component" ->
+            let comp = {
+                Identity = ""
+                Title = ""
+                Technology = ""
+                Description = ""
+            }
+            ComponentKeywordReceived (workspace, system, container, comp)
+        | Word identity -> ComponentIdentityReceived (workspace, system, container, identity)
+        | _ -> Error $"Unexpected token {token}"
+    | ComponentIdentityReceived (workspace, system, container, identity) ->
+        match token with
+        | Operator equality when equality = "=" -> ComponentAssignationReceived (workspace, system, container, identity)
+        | _ -> Error $"Unexpected token {token}"
+    | ComponentAssignationReceived (workspace, system, container, identity) ->
+        match token with
+        | Word keyword when keyword = "component" ->
+            let comp = {
+                Identity = identity
+                Title = ""
+                Technology = ""
+                Description = ""
+            }
+            ComponentKeywordReceived (workspace, system, container, comp)
+        | _ -> Error $"Unexpected token {token}"
+    | ComponentKeywordReceived (workspace, system, container, comp) ->
+        match token with
+        | Text title -> ComponentTitleReceived (workspace, system, container, { comp with Title = title })
+        | _ -> Error $"Unexpected token {token}"
+    | ComponentTitleReceived (workspace, system, container, comp) ->
+        match token with
+        | Text technology -> ComponentTechnologyReceived (workspace, system, container, { comp with Technology = technology })
+        | _ -> Error $"Unexpected token {token}"
+    | ComponentTechnologyReceived (workspace, system, container, comp) ->
+        match token with
+        | Text description -> ComponentDescriptionReceived (workspace, system, container, { comp with Description = description })
+        | _ -> Error $"Unexpected token {token}"
+    | ComponentDescriptionReceived (workspace, system, container, comp) ->
+        match token with
+        | Operator "{" -> ComponentScope (workspace, system, container, comp)
+        | _ -> Error $"Unexpected token {token}"
+    | ComponentScope (workspace, system, container, comp) ->
+        match token with
+        | Operator "}" -> ContainerScope (workspace, system, { container with Components = comp :: container.Components })
         | _ -> Error $"Unexpected token {token}"
     | End workspace -> End workspace
     | Error error -> Error error
