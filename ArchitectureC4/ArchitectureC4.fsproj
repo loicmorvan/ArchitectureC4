@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Models.fs" />
     <Compile Include="Tokenizer.fs" />
     <Compile Include="Interpreter.fs" />
   </ItemGroup>

@@ -61,11 +61,11 @@ let data = [
         ] :> obj
         Interpreted.Workspace { Systems = [
             { Identity = "system2"; Title = ""; Description = ""; Containers = [
-                { Identity = "container1"; Title = ""; Technology = ""; Description = "" }
+                { Identity = "container1"; Title = ""; Technology = ""; Description = ""; Components = [] }
             ] }
             { Identity = "system1"; Title = ""; Description = ""; Containers = [
-                { Identity = "container2"; Title = ""; Technology = ""; Description = "" }
-                { Identity = "container1"; Title = ""; Technology = ""; Description = "" }
+                { Identity = "container2"; Title = ""; Technology = ""; Description = ""; Components = [] }
+                { Identity = "container1"; Title = ""; Technology = ""; Description = ""; Components = [] }
             ] }
         ] } :> obj
     |]
@@ -142,6 +142,7 @@ let data = [
                             Title = "The container's title"
                             Technology = "The container's technology"
                             Description = "The container's description"
+                            Components = []
                         }
                     ]
                 }

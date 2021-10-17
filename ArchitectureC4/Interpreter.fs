@@ -1,20 +1,7 @@
 ﻿module Interpreter
 
 open Tokenizer
-
-type Container = {
-    Identity: string
-    Title: string
-    Technology: string
-    Description: string
-}
-type System = {
-    Identity: string
-    Title: string
-    Description: string
-    Containers: Container list
-}
-type Workspace = { Systems: System list }
+open Models
 
 type State =
     | Start
@@ -114,6 +101,7 @@ let next state token =
                 Title = ""
                 Technology = ""
                 Description = ""
+                Components = []
             }
             ContainerKeywordReceived (workspace, system, container)
         | Word identity -> ContainerIdentityReceived (workspace, system, identity)
@@ -130,6 +118,7 @@ let next state token =
                 Title = ""
                 Technology = ""
                 Description = ""
+                Components = []
             }
             ContainerKeywordReceived (workspace, system, container)
         | _ -> Error $"Unexpected token {token}"
