@@ -26,7 +26,12 @@ type State =
     | SystemTitleReceived of Workspace * System
     | SystemDescriptionReceived of Workspace * System
     | SystemScope of Workspace * System
+    | ContainerIdentityReceived of Workspace * System * string
+    | ContainerAssignationReceived of Workspace * System * string
     | ContainerKeywordReceived of Workspace * System * Container
+    | ContainerTitleReceived of Workspace * System * Container
+    | ContainerTechnologyReceived of Workspace * System * Container
+    | ContainerDescriptionReceived of Workspace * System * Container
     | ContainerScope of Workspace * System * Container
     | End of Workspace
     | Error of string
@@ -111,8 +116,39 @@ let next state token =
                 Description = ""
             }
             ContainerKeywordReceived (workspace, system, container)
+        | Word identity -> ContainerIdentityReceived (workspace, system, identity)
+        | _ -> Error $"Unexpected token {token}"
+    | ContainerIdentityReceived (workspace, system, identity) ->
+        match token with 
+        | Operator equality when equality = "=" -> ContainerAssignationReceived (workspace, system, identity)
+        | _ -> Error $"Unexpected token {token}"
+    | ContainerAssignationReceived (workspace, system, identity) ->
+        match token with 
+        | Word keyword when keyword = "container" -> 
+            let container = {
+                Identity = identity
+                Title = ""
+                Technology = ""
+                Description = ""
+            }
+            ContainerKeywordReceived (workspace, system, container)
         | _ -> Error $"Unexpected token {token}"
     | ContainerKeywordReceived (workspace, system, container) ->
+        match token with
+        | Text title -> ContainerTitleReceived (workspace, system, { container with Title = title })
+        | Operator operator when operator = "{" -> ContainerScope (workspace, system, container)
+        | _ -> Error $"Unexpected token {token}"
+    | ContainerTitleReceived (workspace, system, container) ->
+        match token with
+        | Text technology -> ContainerTechnologyReceived (workspace, system, { container with Technology = technology })
+        | Operator operator when operator = "{" -> ContainerScope (workspace, system, container)
+        | _ -> Error $"Unexpected token {token}"
+    | ContainerTechnologyReceived (workspace, system, container) ->
+        match token with
+        | Text description -> ContainerTechnologyReceived (workspace, system, { container with Description = description })
+        | Operator operator when operator = "{" -> ContainerScope (workspace, system, container)
+        | _ -> Error $"Unexpected token {token}"
+    | ContainerDescriptionReceived (workspace, system, container) ->
         match token with
         | Operator operator when operator = "{" -> ContainerScope (workspace, system, container)
         | _ -> Error $"Unexpected token {token}"
